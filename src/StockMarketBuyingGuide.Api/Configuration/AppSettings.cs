@@ -1,0 +1,21 @@
+namespace StockMarketBuyingGuide.Api.Configuration;
+
+public class AppSettings
+{
+    public JwtSettings Jwt { get; set; } = new();
+    public GoogleSettings Google { get; set; } = new();
+    public string ClaudeApiKey { get; set; } = string.Empty;
+    public string NewsApiKey { get; set; } = string.Empty;
+    public string AllowedEmail { get; set; } = string.Empty;
+}
+
+public class JwtSettings
+{
+    public string Secret { get; set; } = string.Empty;
+    public int ExpiryHours { get; set; } = 8;
+}
+
+public class GoogleSettings
+{
+    public string ClientId { get; set; } = string.Empty;
+}
