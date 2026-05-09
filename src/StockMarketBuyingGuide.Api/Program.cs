@@ -19,6 +19,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<StockDataService>();
+builder.Services.AddScoped<RecommendationOrchestrator>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
