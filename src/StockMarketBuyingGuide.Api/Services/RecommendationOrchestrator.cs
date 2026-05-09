@@ -9,6 +9,7 @@ public class RecommendationOrchestrator(
     AppDbContext db,
     StockDataService stockDataService,
     NewsService newsService,
+    ClaudeService claudeService,
     ILogger<RecommendationOrchestrator> logger)
 {
     public async Task<Guid> RunAsync(RunOptions options, CancellationToken ct = default)
@@ -62,7 +63,13 @@ public class RecommendationOrchestrator(
 
             logger.LogInformation("Fetched {Count} news articles for run {RunId}", newsItems.Count, run.Id);
 
-            // TODO Phase 4: call Claude, save picks
+            // Step 3: Ask Claude for picks
+            logger.LogInformation("Requesting Claude picks for run {RunId}", run.Id);
+            var picks = await claudeService.GetPicksAsync(snapshots, newsItems, run.Id, ct);
+            db.StockPicks.AddRange(picks);
+            await db.SaveChangesAsync(ct);
+
+            logger.LogInformation("Claude returned {Count} picks for run {RunId}", picks.Count, run.Id);
 
             run.CompletedAt = DateTimeOffset.UtcNow;
             await db.SaveChangesAsync(ct);

@@ -21,6 +21,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<StockDataService>();
 builder.Services.AddScoped<NewsService>();
+builder.Services.AddScoped<ClaudeService>();
 builder.Services.AddScoped<RecommendationOrchestrator>();
 builder.Services.AddHttpClient();
 
