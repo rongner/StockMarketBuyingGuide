@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthContext'
 import { recommendationsApi } from '@/api/recommendations'
 import { StockPickCard } from '@/components/StockPickCard'
@@ -8,6 +9,7 @@ import { RunsHistory } from '@/components/RunsHistory'
 
 export function DashboardPage() {
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
 
@@ -45,14 +47,27 @@ export function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-            </svg>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+            <span className="font-semibold text-gray-900">Stock Buying Guide</span>
           </div>
-          <span className="font-semibold text-gray-900">Stock Buying Guide</span>
+          <nav className="flex gap-1">
+            <button className="text-sm px-3 py-1.5 rounded-md bg-gray-100 text-gray-900 font-medium">
+              Dashboard
+            </button>
+            <button
+              onClick={() => navigate('/backtest')}
+              className="text-sm px-3 py-1.5 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            >
+              Backtest
+            </button>
+          </nav>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-500">{user?.email}</span>

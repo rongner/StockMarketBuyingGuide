@@ -10,6 +10,7 @@ public class RecommendationOrchestrator(
     StockDataService stockDataService,
     NewsService newsService,
     ClaudeService claudeService,
+    PerformanceTrackingService performanceTrackingService,
     ILogger<RecommendationOrchestrator> logger)
 {
     public async Task<Guid> RunAsync(RunOptions options, CancellationToken ct = default)
@@ -70,6 +71,13 @@ public class RecommendationOrchestrator(
             await db.SaveChangesAsync(ct);
 
             logger.LogInformation("Claude returned {Count} picks for run {RunId}", picks.Count, run.Id);
+
+            // Step 4: Record performance outcomes for backtests
+            if (options.IsBacktest && options.AsOfDate.HasValue && picks.Count > 0)
+            {
+                logger.LogInformation("Recording performance outcomes for backtest run {RunId}", run.Id);
+                await performanceTrackingService.RecordOutcomesAsync(picks, options.AsOfDate.Value, ct);
+            }
 
             run.CompletedAt = DateTimeOffset.UtcNow;
             await db.SaveChangesAsync(ct);

@@ -74,6 +74,35 @@ public class StockDataService(ILogger<StockDataService> logger)
         return snapshots;
     }
 
+    public async Task<Dictionary<string, decimal>> FetchClosingPricesAsync(
+        IEnumerable<string> tickers, DateOnly date, CancellationToken ct = default)
+    {
+        var from = date.ToDateTime(TimeOnly.MinValue);
+        var to = date.AddDays(5).ToDateTime(TimeOnly.MaxValue); // 5-day window covers weekends + holidays
+
+        var result = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+        var tasks = tickers.Select(async ticker =>
+        {
+            try
+            {
+                var history = await Yahoo.GetHistoricalAsync(ticker, from, to, Period.Daily, ct);
+                var bar = history.FirstOrDefault();
+                return (ticker, bar?.Close as decimal?);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to fetch closing price for {Ticker} on {Date}", ticker, date);
+                return (ticker, (decimal?)null);
+            }
+        });
+
+        var results = await Task.WhenAll(tasks);
+        foreach (var (ticker, price) in results)
+            if (price.HasValue) result[ticker] = price.Value;
+
+        return result;
+    }
+
     private async Task<List<StockSnapshot>> FetchHistoricalAsync(
         List<string> tickers, DateOnly asOfDate, CancellationToken ct)
     {
