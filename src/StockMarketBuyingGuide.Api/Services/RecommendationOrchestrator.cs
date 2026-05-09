@@ -8,6 +8,7 @@ namespace StockMarketBuyingGuide.Api.Services;
 public class RecommendationOrchestrator(
     AppDbContext db,
     StockDataService stockDataService,
+    NewsService newsService,
     ILogger<RecommendationOrchestrator> logger)
 {
     public async Task<Guid> RunAsync(RunOptions options, CancellationToken ct = default)
@@ -52,7 +53,15 @@ public class RecommendationOrchestrator(
 
             logger.LogInformation("Fetched {Count} stock snapshots for run {RunId}", snapshots.Count, run.Id);
 
-            // TODO Phase 3: fetch news
+            // Step 2: Fetch news
+            logger.LogInformation("Fetching news for run {RunId}", run.Id);
+            var newsItems = await newsService.FetchNewsAsync(options.AsOfDate, ct);
+            foreach (var n in newsItems) n.RunId = run.Id;
+            db.NewsSnapshots.AddRange(newsItems);
+            await db.SaveChangesAsync(ct);
+
+            logger.LogInformation("Fetched {Count} news articles for run {RunId}", newsItems.Count, run.Id);
+
             // TODO Phase 4: call Claude, save picks
 
             run.CompletedAt = DateTimeOffset.UtcNow;

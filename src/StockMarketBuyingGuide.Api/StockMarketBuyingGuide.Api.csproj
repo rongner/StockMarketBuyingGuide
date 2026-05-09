@@ -16,6 +16,7 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="System.Text.Json" Version="10.0.7" />
     <PackageReference Include="YahooFinanceApi" Version="2.3.3" />
   </ItemGroup>
 
