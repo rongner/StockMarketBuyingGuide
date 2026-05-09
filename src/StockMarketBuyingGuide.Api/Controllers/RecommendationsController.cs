@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using StockMarketBuyingGuide.Api.Infrastructure;
 using StockMarketBuyingGuide.Api.Models.Dto;
@@ -15,6 +16,7 @@ public class RecommendationsController(
     AppDbContext db) : ControllerBase
 {
     [HttpPost("run")]
+    [EnableRateLimiting("trigger")]
     public async Task<IActionResult> Run(CancellationToken ct)
     {
         var runId = await orchestrator.RunAsync(new RunOptions(), ct);

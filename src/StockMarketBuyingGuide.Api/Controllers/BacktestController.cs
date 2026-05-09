@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using StockMarketBuyingGuide.Api.Infrastructure;
 using StockMarketBuyingGuide.Api.Models.Dto;
@@ -15,6 +16,7 @@ public class BacktestController(
     AppDbContext db) : ControllerBase
 {
     [HttpPost]
+    [EnableRateLimiting("trigger")]
     public async Task<IActionResult> Run([FromBody] BacktestRequest request, CancellationToken ct)
     {
         if (!DateOnly.TryParse(request.Date, out var date))

@@ -1,6 +1,7 @@
 using System.Threading.Channels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using StockMarketBuyingGuide.Api.Infrastructure;
 using StockMarketBuyingGuide.Api.Infrastructure.Entities;
@@ -17,6 +18,7 @@ public class SimulationController(
     ChannelWriter<Guid> jobQueue) : ControllerBase
 {
     [HttpPost]
+    [EnableRateLimiting("trigger")]
     public async Task<IActionResult> Start([FromBody] SimulationRequest request, CancellationToken ct)
     {
         if (!DateOnly.TryParse(request.StartDate, out var startDate))

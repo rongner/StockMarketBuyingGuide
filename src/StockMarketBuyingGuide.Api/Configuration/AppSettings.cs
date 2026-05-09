@@ -8,6 +8,7 @@ public class AppSettings
     public string NewsApiKey { get; set; } = string.Empty;
     public string AllowedEmail { get; set; } = string.Empty;
     public int SimulationDelaySeconds { get; set; } = 1;
+    public string[] CorsOrigins { get; set; } = [];
 }
 
 public class JwtSettings

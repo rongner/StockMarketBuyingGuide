@@ -1,6 +1,8 @@
 using System.Text;
 using System.Threading.Channels;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -53,16 +55,38 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
-        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
-              .AllowAnyHeader()
-              .AllowAnyMethod()));
+    {
+        var origins = appSettings.CorsOrigins.Length > 0
+            ? appSettings.CorsOrigins
+            : ["http://localhost:5173"];
+        policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
+    }));
 
+// Rate limiting: 10 trigger requests per user per minute on mutating endpoints
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("trigger", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.User?.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "anon",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0,
+            }));
+    options.RejectionStatusCode = 429;
+});
+
+builder.Services.AddProblemDetails();
 builder.Services.AddControllers();
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
 app.UseCors();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
