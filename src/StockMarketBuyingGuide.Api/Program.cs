@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.Channels;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -24,7 +25,14 @@ builder.Services.AddScoped<NewsService>();
 builder.Services.AddScoped<ClaudeService>();
 builder.Services.AddScoped<PerformanceTrackingService>();
 builder.Services.AddScoped<RecommendationOrchestrator>();
+builder.Services.AddScoped<SimulationService>();
 builder.Services.AddHttpClient();
+
+// Background simulation queue
+var simulationChannel = Channel.CreateUnbounded<Guid>(new UnboundedChannelOptions { SingleReader = true });
+builder.Services.AddSingleton(simulationChannel.Reader);
+builder.Services.AddSingleton(simulationChannel.Writer);
+builder.Services.AddHostedService<SimulationWorker>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -45,7 +53,7 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
     options.AddDefaultPolicy(policy =>
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
               .AllowAnyHeader()
               .AllowAnyMethod()));
 

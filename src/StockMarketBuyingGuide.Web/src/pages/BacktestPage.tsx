@@ -69,6 +69,12 @@ export function BacktestPage() {
             >
               Backtest
             </button>
+            <button
+              onClick={() => navigate('/simulation')}
+              className="text-sm px-3 py-1.5 rounded-md text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+            >
+              Simulation
+            </button>
           </nav>
         </div>
         <div className="flex items-center gap-4">

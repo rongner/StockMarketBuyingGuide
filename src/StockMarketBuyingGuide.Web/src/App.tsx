@@ -4,6 +4,7 @@ import { ProtectedRoute } from '@/auth/ProtectedRoute'
 import { LoginPage } from '@/pages/LoginPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { BacktestPage } from '@/pages/BacktestPage'
+import { SimulationPage } from '@/pages/SimulationPage'
 
 export default function App() {
   return (
@@ -24,6 +25,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <BacktestPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/simulation"
+            element={
+              <ProtectedRoute>
+                <SimulationPage />
               </ProtectedRoute>
             }
           />
