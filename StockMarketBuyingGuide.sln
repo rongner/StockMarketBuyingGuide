@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2D2208CF-33CB-4BBF-A075-0DF6C6FC17D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockMarketBuyingGuide.Api", "src\StockMarketBuyingGuide.Api\StockMarketBuyingGuide.Api.csproj", "{A8B8CCD8-B224-4678-833B-F6CD64036A3A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockMarketBuyingGuide.Api.Tests", "src\StockMarketBuyingGuide.Api.Tests\StockMarketBuyingGuide.Api.Tests.csproj", "{246E52A8-5B2F-47C0-97BC-C724E8702B13}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A8B8CCD8-B224-4678-833B-F6CD64036A3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8B8CCD8-B224-4678-833B-F6CD64036A3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8B8CCD8-B224-4678-833B-F6CD64036A3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8B8CCD8-B224-4678-833B-F6CD64036A3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{246E52A8-5B2F-47C0-97BC-C724E8702B13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{246E52A8-5B2F-47C0-97BC-C724E8702B13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{246E52A8-5B2F-47C0-97BC-C724E8702B13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{246E52A8-5B2F-47C0-97BC-C724E8702B13}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A8B8CCD8-B224-4678-833B-F6CD64036A3A} = {2D2208CF-33CB-4BBF-A075-0DF6C6FC17D4}
+		{246E52A8-5B2F-47C0-97BC-C724E8702B13} = {2D2208CF-33CB-4BBF-A075-0DF6C6FC17D4}
+	EndGlobalSection
+EndGlobal
