@@ -4,7 +4,7 @@ public class AppSettings
 {
     public JwtSettings Jwt { get; set; } = new();
     public GoogleSettings Google { get; set; } = new();
-    public string ClaudeApiKey { get; set; } = string.Empty;
+    public string GroqApiKey { get; set; } = string.Empty;
     public string NewsApiKey { get; set; } = string.Empty;
     public string AllowedEmail { get; set; } = string.Empty;
     public int SimulationDelaySeconds { get; set; } = 1;

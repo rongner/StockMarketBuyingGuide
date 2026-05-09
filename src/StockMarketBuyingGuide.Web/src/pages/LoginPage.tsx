@@ -43,7 +43,7 @@ export function LoginPage() {
           onError={() => setError('Google sign-in was cancelled or failed.')}
           theme="outline"
           size="large"
-          width="100%"
+          width={340}
         />
 
         <p className="text-xs text-gray-400 text-center">

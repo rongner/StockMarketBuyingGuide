@@ -77,8 +77,9 @@ public class StockDataService(ILogger<StockDataService> logger)
     public async Task<Dictionary<string, decimal>> FetchClosingPricesAsync(
         IEnumerable<string> tickers, DateOnly date, CancellationToken ct = default)
     {
-        var from = date.ToDateTime(TimeOnly.MinValue);
-        var to = date.AddDays(5).ToDateTime(TimeOnly.MaxValue); // 5-day window covers weekends + holidays
+        // Start one day before the target to avoid timezone boundary issues with Yahoo's bar timestamps
+        var from = date.AddDays(-1).ToDateTime(TimeOnly.MinValue);
+        var to = date.AddDays(7).ToDateTime(TimeOnly.MaxValue);
 
         var result = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
         var tasks = tickers.Select(async ticker =>
@@ -86,8 +87,10 @@ public class StockDataService(ILogger<StockDataService> logger)
             try
             {
                 var history = await Yahoo.GetHistoricalAsync(ticker, from, to, Period.Daily, ct);
-                var bar = history.FirstOrDefault();
-                return (ticker, bar?.Close as decimal?);
+                // Find the first bar on or after the requested date
+                var bar = history.FirstOrDefault(b => DateOnly.FromDateTime(b.DateTime) >= date);
+                if (bar is null) return (ticker, (decimal?)null);
+                return (ticker, (decimal?)bar.Close);
             }
             catch (Exception ex)
             {
