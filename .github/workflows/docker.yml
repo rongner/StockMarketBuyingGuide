@@ -10,7 +10,27 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
+  test:
+    name: Run tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal
+
   build-api:
+    needs: test
     name: Build API image
     runs-on: ubuntu-latest
     permissions:
@@ -53,6 +73,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   build-web:
+    needs: test
     name: Build Web image
     runs-on: ubuntu-latest
     permissions:
