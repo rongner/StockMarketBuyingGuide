@@ -31,12 +31,19 @@ export class ConsoleTransport implements LogTransport {
 export class ApiTransport implements LogTransport {
   private buffer: LogEntry[] = []
   private timer: ReturnType<typeof setTimeout> | null = null
+  private readonly url: string
+  private readonly getToken: () => string | null
+  private readonly flushMs: number
 
   constructor(
-    private readonly url: string,
-    private readonly getToken: () => string | null = () => localStorage.getItem('smb_token'),
-    private readonly flushMs = 5_000,
-  ) {}
+    url: string,
+    getToken: () => string | null = () => localStorage.getItem('smb_token'),
+    flushMs = 5_000,
+  ) {
+    this.url = url
+    this.getToken = getToken
+    this.flushMs = flushMs
+  }
 
   send(entry: LogEntry) {
     this.buffer.push(entry)
