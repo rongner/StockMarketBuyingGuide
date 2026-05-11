@@ -295,7 +295,7 @@ function SimulationResults({ job }: { job: SimulationDetail }) {
                 width={48}
               />
               <Tooltip
-                formatter={(v: number) => [`$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, 'Capital']}
+                formatter={(v: number) => `$${v.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
                 labelFormatter={l => `Date: ${l}`}
                 contentStyle={{ fontSize: 12, border: '1px solid #e5e7eb', borderRadius: 8 }}
               />
