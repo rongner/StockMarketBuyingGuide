@@ -6,12 +6,13 @@ using StockMarketBuyingGuide.Api.Services;
 
 namespace StockMarketBuyingGuide.Api.Tests.Unit;
 
-public class ClaudeServiceTests
+public class GroqServiceTests
 {
-    private static ClaudeService CreateService(string? apiKey = null)
+    private static GroqService CreateService(string? apiKey = null)
     {
-        var settings = new AppSettings { ClaudeApiKey = apiKey ?? "" };
-        return new ClaudeService(settings, new NullLogger<ClaudeService>());
+        var settings = new AppSettings { GroqApiKey = apiKey ?? "" };
+        var factory = new Moq.Mock<IHttpClientFactory>();
+        return new GroqService(settings, factory.Object, new NullLogger<GroqService>());
     }
 
     private static List<StockSnapshot> SampleSnapshots() =>

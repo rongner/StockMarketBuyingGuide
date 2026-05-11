@@ -6,6 +6,10 @@ obj/
 .vs/
 appsettings.Development.json
 appsettings.Production.json
+logs/
+
+# Secrets
+.env
 
 # Node
 node_modules/

@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  test:
-    name: Run tests
+  test-api:
+    name: Test API
     runs-on: ubuntu-latest
 
     steps:
@@ -26,9 +26,36 @@ jobs:
       - name: Test
         run: dotnet test --no-restore --verbosity normal
 
+  test-web:
+    name: Test Web
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: src/StockMarketBuyingGuide.Web/package-lock.json
+
+      - name: Install
+        working-directory: src/StockMarketBuyingGuide.Web
+        run: npm ci
+
+      - name: Lint
+        working-directory: src/StockMarketBuyingGuide.Web
+        run: npm run lint
+
+      - name: Test
+        working-directory: src/StockMarketBuyingGuide.Web
+        run: npm run test -- --run
+
   build-api:
     name: Build API image
-    needs: test
+    needs: [test-api, test-web]
     uses: rongner-portfolio/workflows/.github/workflows/docker-build.yml@main
     with:
       image-name: stockmarketbuyingguide-api
@@ -40,7 +67,7 @@ jobs:
 
   build-web:
     name: Build Web image
-    needs: test
+    needs: [test-api, test-web]
     uses: rongner-portfolio/workflows/.github/workflows/docker-build.yml@main
     with:
       image-name: stockmarketbuyingguide-web

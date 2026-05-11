@@ -80,8 +80,21 @@ builder.Services.AddRateLimiter(options =>
 
 builder.Services.AddProblemDetails();
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() { Title = "Stock Market Buying Guide API", Version = "v1" });
+});
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("Default")!);
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
@@ -90,6 +103,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/healthz");
 
 app.Run();
 

@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: stockmarketbuyingguide
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: src/StockMarketBuyingGuide.Api/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: "Host=db;Port=5432;Database=stockmarketbuyingguide;Username=postgres;Password=postgres"
+      App__AllowedEmail: ${ALLOWED_EMAIL}
+      App__GroqApiKey: ${GROQ_API_KEY}
+      App__NewsApiKey: ${NEWS_API_KEY}
+      App__Jwt__Secret: ${JWT_SECRET}
+      App__Google__ClientId: ${GOOGLE_CLIENT_ID}
+      App__CorsOrigins__0: "http://localhost:5173"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: src/StockMarketBuyingGuide.Web
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+volumes:
+  pgdata:
