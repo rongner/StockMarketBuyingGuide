@@ -15,6 +15,8 @@ A full-stack portfolio project that uses AI to recommend 5 stocks to buy each da
 
 ### Backend (.NET 10)
 - **ASP.NET Core Web API** with controller-based routing and `ProblemDetails` (RFC 7807) error responses
+- **Swagger / OpenAPI** — interactive API docs at `/swagger` in development, with JWT bearer auth support
+- **Health checks** — `/healthz` endpoint with a live PostgreSQL connectivity probe
 - **Google OAuth + JWT** — server-side Google ID token validation via `Google.Apis.Auth`, issuing HS256 JWTs for subsequent requests
 - **Entity Framework Core** with Npgsql (PostgreSQL), EF migrations, and a service layer architecture
 - **Background processing** — `IHostedService` + `Channel<T>` for a non-blocking simulation job queue; the controller returns a job ID immediately and the client polls for completion
@@ -32,12 +34,23 @@ A full-stack portfolio project that uses AI to recommend 5 stocks to buy each da
 - **Axios interceptors** — automatic JWT attachment and 401 redirect
 - **Pluggable frontend logger** — `ConsoleTransport` locally, `ApiTransport` to batch and ship logs to the backend
 
-### DevOps & Tooling
+### Testing
+- **xUnit** unit tests for API services — JWT, news ticker association, simulation maths, Groq service
+- **Vitest** + React Testing Library for frontend components and auth context
+- **ESLint** enforced on every PR
+
+### DevOps & Security
 - **Docker** — multi-stage builds for both the API (`dotnet/sdk` → `dotnet/aspnet`) and the web frontend (`node` → `nginx`)
-- **GitHub Actions** — parallel CI jobs that build and push both images to GitHub Container Registry (`ghcr.io`) on every push to `main`, with GitHub Actions layer caching
-- **Branch protection** — `main` requires passing CI and a pull request; direct pushes are blocked
+- **Docker Compose** — single command to spin up the full stack (PostgreSQL, API, web) locally
+- **GitHub Actions** — parallel CI pipeline: tests → Docker builds → image scanning, with GitHub Actions layer caching
+- **Reusable workflows** — Docker build-and-push logic lives in [`rongner-portfolio/workflows`](https://github.com/rongner-portfolio/workflows) and is called by this repo, ready to share across future projects
+- **Trivy** — scans both Docker images for critical/high CVEs after every push; results surfaced in the GitHub Security tab
+- **CodeQL** — static analysis for C# and TypeScript on every PR and weekly, results in the Security tab
+- **Dependabot** — automated PRs for vulnerable or outdated NuGet, npm, Docker base image, and GitHub Actions dependencies
+- **Secret scanning** — GitHub blocks any push containing a known secret pattern before it lands in the repo
+- **Branch protection** — `main` requires all CI checks to pass and a pull request; direct pushes are blocked
 - **CODEOWNERS** — default reviewer assignment on all PRs
-- **PR template** — consistent pull request structure
+- **PR template** — consistent pull request structure enforced across the org
 
 ---
 
@@ -72,39 +85,42 @@ A full-stack portfolio project that uses AI to recommend 5 stocks to buy each da
 | UI | Tailwind CSS v4, Recharts |
 | State | TanStack Query, React Router v7 |
 | Logging | Serilog (API), custom transport logger (frontend) |
+| Testing | xUnit, Vitest, React Testing Library |
 | CI/CD | GitHub Actions, Docker, GitHub Container Registry |
+| Security | Trivy, CodeQL, Dependabot, secret scanning |
 
 ---
 
 ## Running Locally
 
-### Prerequisites
-- .NET 10 SDK
-- Node.js 22+
-- PostgreSQL 17
-- A [Groq API key](https://console.groq.com) (free)
-- A [NewsAPI key](https://newsapi.org) (free tier)
-- A Google OAuth client ID
+### Option 1 — Docker Compose
 
-### API
+Requires Docker and a `.env` file (copy from `.env.example`):
 
 ```bash
-cd src/StockMarketBuyingGuide.Api
-# Fill in appsettings.Development.json with your keys and connection string
-dotnet run
+cp .env.example .env
+# Fill in your API keys in .env
+docker compose up
 ```
 
-### Web
+The app will be available at `http://localhost:5173`.
+
+### Option 2 — Manual
+
+**Prerequisites:** .NET 10 SDK, Node.js 22+, PostgreSQL 17
 
 ```bash
+# Database
+cd src/StockMarketBuyingGuide.Api
+dotnet ef database update
+
+# API — fill in appsettings.Development.json with your keys
+dotnet run
+
+# Web (separate terminal)
 cd src/StockMarketBuyingGuide.Web
 npm install
 npm run dev
 ```
 
-### Database
-
-```bash
-cd src/StockMarketBuyingGuide.Api
-dotnet ef database update
-```
+API docs available at `http://localhost:5001/swagger` when running in Development.
