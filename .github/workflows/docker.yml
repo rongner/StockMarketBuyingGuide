@@ -76,3 +76,36 @@ jobs:
     permissions:
       contents: read
       packages: write
+
+  scan:
+    name: Scan (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    needs: [build-api, build-web]
+    if: github.event_name != 'pull_request'
+    permissions:
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: ghcr.io/rongner/stockmarketbuyingguide-api:latest
+            name: api
+          - image: ghcr.io/rongner/stockmarketbuyingguide-web:latest
+            name: web
+
+    steps:
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ matrix.image }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+
+      - name: Upload to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-${{ matrix.name }}
