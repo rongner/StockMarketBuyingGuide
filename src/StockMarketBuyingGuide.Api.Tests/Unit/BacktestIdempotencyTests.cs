@@ -22,17 +22,20 @@ public class BacktestIdempotencyTests
 
     private static RecommendationOrchestrator CreateOrchestrator(AppDbContext db)
     {
-        var stockDataService = new StockDataService(new NullLogger<StockDataService>());
+        var httpClientFactory = Mock.Of<IHttpClientFactory>();
+        var stockDataService = new StockDataService(
+            new NullLogger<StockDataService>(), httpClientFactory);
         var newsService = new NewsService(
-            Mock.Of<IHttpClientFactory>(),
+            httpClientFactory,
             new AppSettings(),
             new NullLogger<NewsService>());
-        var claudeService = new ClaudeService(new AppSettings(), new NullLogger<ClaudeService>());
+        var groqService = new GroqService(
+            new AppSettings(), httpClientFactory, new NullLogger<GroqService>());
         var perfService = new PerformanceTrackingService(
             db, stockDataService, new NullLogger<PerformanceTrackingService>());
 
         return new RecommendationOrchestrator(
-            db, stockDataService, newsService, claudeService, perfService,
+            db, stockDataService, newsService, groqService, perfService,
             new NullLogger<RecommendationOrchestrator>());
     }
 
