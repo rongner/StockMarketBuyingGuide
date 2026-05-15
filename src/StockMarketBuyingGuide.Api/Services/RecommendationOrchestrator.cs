@@ -11,6 +11,7 @@ public class RecommendationOrchestrator(
     NewsService newsService,
     GroqService groqService,
     PerformanceTrackingService performanceTrackingService,
+    WinnerAnalysisService winnerAnalysisService,
     ILogger<RecommendationOrchestrator> logger)
 {
     public async Task<Guid> RunAsync(RunOptions options, CancellationToken ct = default)
@@ -64,9 +65,22 @@ public class RecommendationOrchestrator(
 
             logger.LogInformation("Fetched {Count} news articles for run {RunId}", newsItems.Count, run.Id);
 
-            // Step 3: Ask Groq for picks
+            // Step 2.5: Build winner profile from historical outcomes
+            // Option A — enriches the Groq system prompt with past-winner characteristics
+            // Option B — pre-filters the snapshot universe to stocks resembling past winners
+            var profile = await winnerAnalysisService.GetProfileAsync(ct: ct);
+            var filteredSnapshots = profile is not null
+                ? winnerAnalysisService.FilterToProfile(snapshots, profile)
+                : snapshots;
+
+            if (profile is not null)
+                logger.LogInformation(
+                    "Narrowed universe from {Before} to {After} stocks using winner profile ({Samples} samples)",
+                    snapshots.Count, filteredSnapshots.Count, profile.SampleCount);
+
+            // Step 3: Ask Groq for picks (filtered universe + enriched prompt)
             logger.LogInformation("Requesting Groq picks for run {RunId}", run.Id);
-            var picks = await groqService.GetPicksAsync(snapshots, newsItems, run.Id, ct);
+            var picks = await groqService.GetPicksAsync(filteredSnapshots, newsItems, run.Id, profile, ct);
             db.StockPicks.AddRange(picks);
             await db.SaveChangesAsync(ct);
 

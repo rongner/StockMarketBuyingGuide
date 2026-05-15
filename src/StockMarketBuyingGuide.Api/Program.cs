@@ -26,6 +26,7 @@ builder.Services.AddScoped<StockDataService>();
 builder.Services.AddScoped<NewsService>();
 builder.Services.AddScoped<GroqService>();
 builder.Services.AddScoped<PerformanceTrackingService>();
+builder.Services.AddScoped<WinnerAnalysisService>();
 builder.Services.AddScoped<RecommendationOrchestrator>();
 builder.Services.AddScoped<SimulationService>();
 builder.Services.AddHttpClient();

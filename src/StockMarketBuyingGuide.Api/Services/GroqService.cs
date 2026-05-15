@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using StockMarketBuyingGuide.Api.Configuration;
 using StockMarketBuyingGuide.Api.Infrastructure.Entities;
+using StockMarketBuyingGuide.Api.Models;
 
 namespace StockMarketBuyingGuide.Api.Services;
 
@@ -16,7 +17,7 @@ public class GroqService(
     private const string Model = "llama-3.3-70b-versatile";
     private const string Url = "https://api.groq.com/openai/v1/chat/completions";
 
-    private static readonly string SystemPrompt = """
+    private const string BaseSystemPrompt = """
         You are a professional stock market analyst. You will be given live market data and
         recent financial news. Your task is to select exactly 5 stocks to buy today.
 
@@ -30,10 +31,48 @@ public class GroqService(
         and data-driven in your reasoning, referencing the numbers from the market data.
         """;
 
+    public static string BuildSystemPrompt(WinnerProfile? profile)
+    {
+        if (profile is null) return BaseSystemPrompt;
+
+        var sb = new StringBuilder(BaseSystemPrompt);
+        sb.AppendLine();
+        sb.AppendLine($"""
+
+            Historical performance insight from {profile.SampleCount} past picks that gained on the following day:
+            - Average day-of-pick momentum: {profile.AvgMomentumPct:+0.##;-0.##}% intraday change
+            """);
+
+        if (profile.AvgRangePosition > 0)
+            sb.AppendLine(
+                $"- Average 52-week range position at pick time: {profile.AvgRangePosition:F0}% from the annual low");
+
+        if (profile.AvgVolumePercentile > 0)
+            sb.AppendLine(
+                $"- Average volume percentile at pick time: {profile.AvgVolumePercentile:F0}th percentile within the day's universe (higher = unusually active)");
+
+        if (profile.Examples.Count > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Recent examples of outperforming picks (do NOT re-pick these; use as a pattern reference):");
+            foreach (var e in profile.Examples)
+                sb.AppendLine(
+                    $"  {e.Ticker} ({e.CompanyName}): momentum {e.MomentumPct:+0.##;-0.##}%, " +
+                    (e.RangePosition > 0 ? $"range pos {e.RangePosition:F0}%, " : "") +
+                    $"returned +{e.ReturnPct:F1}% over 20 days");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine("Favour stocks whose current momentum and range position resemble these historical winners.");
+
+        return sb.ToString();
+    }
+
     public async Task<List<StockPick>> GetPicksAsync(
         List<StockSnapshot> snapshots,
         List<NewsSnapshot> news,
         Guid runId,
+        WinnerProfile? profile = null,
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(settings.GroqApiKey))
@@ -59,8 +98,8 @@ public class GroqService(
             model = Model,
             messages = new[]
             {
-                new { role = "system", content = SystemPrompt },
-                new { role = "user",   content = userPrompt   }
+                new { role = "system", content = BuildSystemPrompt(profile) },
+                new { role = "user",   content = userPrompt                 }
             },
             tools = new[]
             {

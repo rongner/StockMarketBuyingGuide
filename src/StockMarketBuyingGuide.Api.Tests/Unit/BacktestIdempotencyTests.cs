@@ -33,9 +33,11 @@ public class BacktestIdempotencyTests
             new AppSettings(), httpClientFactory, new NullLogger<GroqService>());
         var perfService = new PerformanceTrackingService(
             db, stockDataService, new NullLogger<PerformanceTrackingService>());
+        var winnerService = new WinnerAnalysisService(
+            db, new NullLogger<WinnerAnalysisService>());
 
         return new RecommendationOrchestrator(
-            db, stockDataService, newsService, groqService, perfService,
+            db, stockDataService, newsService, groqService, perfService, winnerService,
             new NullLogger<RecommendationOrchestrator>());
     }
 

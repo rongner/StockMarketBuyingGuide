@@ -10,6 +10,7 @@ public class SimulationService(
     AppDbContext db,
     RecommendationOrchestrator orchestrator,
     StockDataService stockDataService,
+    WinnerAnalysisService winnerAnalysisService,
     AppSettings settings,
     ILogger<SimulationService> logger)
 {
@@ -92,10 +93,7 @@ public class SimulationService(
                     continue;
                 }
 
-                var avgReturn = (decimal)validPicks
-                    .Select(p => (double)(nextPrices[p.Ticker] - p.PriceAtRecommendation)
-                                 / (double)p.PriceAtRecommendation)
-                    .Average();
+                var avgReturn = (decimal)await ComputeWeightedReturnAsync(validPicks, nextPrices, runId, ct);
 
                 var capitalAfter = capital * (1m + avgReturn);
 
@@ -138,5 +136,46 @@ public class SimulationService(
             job.ErrorMessage = ex.Message;
             await db.SaveChangesAsync(CancellationToken.None);
         }
+    }
+
+    private async Task<double> ComputeWeightedReturnAsync(
+        List<StockPick> picks,
+        Dictionary<string, decimal> nextPrices,
+        Guid runId,
+        CancellationToken ct)
+    {
+        var profile = await winnerAnalysisService.GetProfileAsync(ct: ct);
+
+        if (profile is null)
+            return picks.Average(p =>
+                (double)(nextPrices[p.Ticker] - p.PriceAtRecommendation) / (double)p.PriceAtRecommendation);
+
+        // Fetch all snapshots for this run to compute volume percentiles in context
+        var runSnapshots = await db.StockSnapshots
+            .Where(s => s.RunId == runId)
+            .ToListAsync(ct);
+
+        var sortedVols = runSnapshots.Select(s => s.Volume).OrderBy(v => v).ToList();
+        var snapMap    = runSnapshots.ToDictionary(s => s.Ticker, StringComparer.OrdinalIgnoreCase);
+
+        var scores = picks
+            .Select(p =>
+            {
+                if (!snapMap.TryGetValue(p.Ticker, out var snap)) return 1.0;
+                var volPct = WinnerAnalysisService.ComputeVolumePercentile(snap.Volume, sortedVols);
+                return WinnerAnalysisService.ScoreSnapshot(snap, volPct, profile);
+            })
+            .ToList();
+
+        var totalScore = scores.Sum();
+        if (totalScore <= 0)
+            return picks.Average(p =>
+                (double)(nextPrices[p.Ticker] - p.PriceAtRecommendation) / (double)p.PriceAtRecommendation);
+
+        return picks.Zip(scores, (p, w) =>
+        {
+            var ret = (double)(nextPrices[p.Ticker] - p.PriceAtRecommendation) / (double)p.PriceAtRecommendation;
+            return ret * (w / totalScore);
+        }).Sum();
     }
 }
