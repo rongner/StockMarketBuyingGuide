@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
@@ -13,7 +13,7 @@ export function BacktestPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [selectedDate, setSelectedDate] = useState(MAX_DATE)
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
+  const [preferredRunId, setSelectedRunId] = useState<string | null>(null)
 
   const { data: runs = [] } = useQuery({
     queryKey: ['backtest-runs'],
@@ -34,12 +34,7 @@ export function BacktestPage() {
     },
   })
 
-  // Auto-select most recent backtest on first load
-  useEffect(() => {
-    if (!selectedRunId && runs.length > 0) {
-      setSelectedRunId(runs[0].id)
-    }
-  }, [runs, selectedRunId])
+  const selectedRunId = preferredRunId ?? runs[0]?.id ?? null
 
   const isRunning = runMutation.isPending
 

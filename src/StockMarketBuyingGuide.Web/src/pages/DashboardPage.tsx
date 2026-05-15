@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { useNavigate } from 'react-router-dom'
@@ -11,7 +11,7 @@ export function DashboardPage() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
+  const [preferredRunId, setSelectedRunId] = useState<string | null>(null)
 
   const { data: runs = [] } = useQuery({
     queryKey: ['runs'],
@@ -32,13 +32,7 @@ export function DashboardPage() {
     },
   })
 
-  // Auto-select the most recent completed run on first load
-  useEffect(() => {
-    if (!selectedRunId && runs.length > 0) {
-      const first = runs.find(r => r.completedAt !== null) ?? runs[0]
-      setSelectedRunId(first.id)
-    }
-  }, [runs, selectedRunId])
+  const selectedRunId = preferredRunId ?? (runs.find(r => r.completedAt !== null) ?? runs[0])?.id ?? null
 
   const isRunning = runMutation.isPending
   const runError = runMutation.error as Error | null

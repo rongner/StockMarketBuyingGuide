@@ -22,7 +22,11 @@ export class ConsoleTransport implements LogTransport {
       entry.level === 'warn'  ? console.warn  :
       entry.level === 'debug' ? console.debug :
       console.info
-    entry.data !== undefined ? fn(prefix, entry.message, entry.data) : fn(prefix, entry.message)
+    if (entry.data !== undefined) {
+      fn(prefix, entry.message, entry.data)
+    } else {
+      fn(prefix, entry.message)
+    }
   }
 }
 
